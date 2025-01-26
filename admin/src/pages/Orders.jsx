@@ -1,94 +1,106 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
-const initialOrders = [
-    {
-        id: '1',
-        date: '2024-11-01',
-        address: '123 Main St, City, Country',
-        status: 'Pending',
-        products: [
-            { name: 'Sporty Wrap-Around Sunglasses', quantity: 2, price: 280 },
-            { name: 'Adjustable Eyewear Strap', quantity: 1, price: 20 },
-        ],
-        total: 580,
-    },
-    {
-        id: '2',
-        date: '2024-11-02',
-        address: '456 Elm St, City, Country',
-        status: 'Shipped',
-        products: [
-            { name: 'Vintage Round Sunglasses', quantity: 1, price: 290 },
-            { name: 'Microfiber Cleaning Cloth', quantity: 3, price: 10 },
-        ],
-        total: 320,
-    },
-    {
-      id: '3',
-      date: '2024-11-03',
-      address: '789 Phan Dinh Phung, Hanoi, Vietnam',
-      status: 'Pending',
-      products: [
-          { name: 'Trendy Cat-Eye Sunglasses', quantity: 1, price: 250 },
-          { name: 'Blue Light Blocking Glasses', quantity: 2, price: 150 },
-          { name: 'Classic Wayfarer Sunglasses', quantity: 1, price: 300 },
-          { name: 'Polarized Sunglasses', quantity: 1, price: 350 },
-      ],  
-      total: 550,
-  },
-  {
-      id: '4',
-      date: '2024-11-04',
-      address: '101 Hoang Hoa Tham, Hanoi, Vietnam',
-      status: 'Delivered',
-      products: [
-          { name: 'Classic Wayfarer Sunglasses', quantity: 1, price: 300 },
-          { name: 'Polarized Sunglasses', quantity: 1, price: 350 },
-      ],
-      total: 650,
-  },
-];
-
-const statusOptions = ['Pending', 'Shipped', 'Delivered', 'Cancelled'];
+const statusOptions = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 
 const Orders = () => {
-    const [orders, setOrders] = useState(initialOrders);
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    const handleStatusChange = (id, newStatus) => {
-        const updatedOrders = orders.map((order) => {
-            if (order.id === id) {
-                return { ...order, status: newStatus };
-            }
-            return order;
-        });
-        setOrders(updatedOrders);
+    useEffect(() => {
+        fetchOrders();
+    }, []);
+
+    const fetchOrders = async () => {
+        try {
+            const response = await axios.get('http://localhost:4000/api/order/admin/get');
+            console.log('API Response:', response.data); // Để debug
+            setOrders(response.data.data);
+            setLoading(false);
+        } catch (err) {
+            console.error('Error fetching orders:', err);
+            setError('Failed to fetch orders');
+            setLoading(false);
+        }
     };
+
+    const handleStatusChange = async (id, newStatus) => {
+        try {
+            await axios.put(`http://localhost:4000/api/order/admin/update/${id}`, {
+                status: newStatus
+            });
+            
+            setOrders(orders.map((order) => {
+                if (order._id === id) {
+                    return { ...order, status: newStatus };
+                }
+                return order;
+            }));
+        } catch (err) {
+            console.error('Error updating order status:', err);
+            alert('Failed to update order status');
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="text-red-500 text-center p-4">
+                {error}
+            </div>
+        );
+    }
 
     return (
         <div className="container mx-auto p-4">
             <h1 className="text-2xl font-bold mb-4">Orders</h1>
             <table className="min-w-full bg-white border border-gray-300">
                 <thead>
-                    <tr>
-                        <th className="py-2 px-4 border-b">Order ID</th>
-                        <th className="py-2 px-4 border-b">Date</th>
-                        <th className="py-2 px-4 border-b">Address</th>
-                        <th className="py-2 px-4 border-b">Status</th>
-                        <th className="py-2 px-4 border-b">Products</th>
-                        <th className="py-2 px-4 border-b">Total</th>
-                        <th className="py-2 px-4 border-b">Actions</th>
+                    <tr className="bg-gray-200">
+                        <th className="border border-gray-300 px-4 py-2">Order ID</th>
+                        <th className="border border-gray-300 px-4 py-2">Date</th>
+                        <th className="border border-gray-300 px-4 py-2">Customer</th>
+                        <th className="border border-gray-300 px-4 py-2">Address</th>
+                        <th className="border border-gray-300 px-4 py-2">Status</th>
+                        <th className="border border-gray-300 px-4 py-2">Products</th>
+                        <th className="border border-gray-300 px-4 py-2">Total</th>
+                        <th className="border border-gray-300 px-4 py-2">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {orders.map((order) => (
-                        <tr key={order.id} className="hover:bg-gray-100">
-                            <td className="py-2 px-4 border-b">{order.id}</td>
-                            <td className="py-2 px-4 border-b">{order.date}</td>
-                            <td className="py-2 px-4 border-b">{order.address}</td>
-                            <td className="py-2 px-4 border-b">
+                        <tr key={order._id} className="hover:bg-gray-100">
+                            <td className="border border-gray-300 px-4 py-2">{order.orderID}</td>
+                            <td className="border border-gray-300 px-4 py-2">
+                                {order.paidAt ? new Date(order.paidAt).toLocaleDateString() : 'N/A'}
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2">
+                                <div>
+                                    <div className="font-medium">
+                                        {order.shippingAddress?.fullName || 'N/A'}
+                                    </div>
+                                    <div className="text-sm text-gray-500">
+                                        {order.shippingAddress?.phone || 'N/A'}
+                                    </div>
+                                </div>
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2">
+                                {order.shippingAddress ? 
+                                    `${order.shippingAddress.address}, ${order.shippingAddress.city}` : 
+                                    'N/A'}
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2">
                                 <select
                                     value={order.status}
-                                    onChange={(e) => handleStatusChange(order.id, e.target.value)}
+                                    onChange={(e) => handleStatusChange(order._id, e.target.value)}
                                     className="border border-gray-300 rounded-md p-1"
                                 >
                                     {statusOptions.map((status) => (
@@ -98,17 +110,28 @@ const Orders = () => {
                                     ))}
                                 </select>
                             </td>
-                            <td className="py-2 px-4 border-b">
-                                <ul>
-                                    {order.products.map((product, index) => (
-                                        <li key={index}>
-                                            {product.name} (x{product.quantity})
+                            <td className="border border-gray-300 px-4 py-2">
+                                <ul className="list-none">
+                                    {order.items && order.items.map((item, index) => (
+                                        <li key={index} className="mb-1">
+                                            <span className="font-medium">
+                                                {/* Kiểm tra nếu productID tồn tại */}
+                                                {item.productID?.name || 'Unnamed Product'}
+                                            </span>
+                                            <span className="text-gray-500">
+                                                {' x'}{item.quantity}
+                                            </span>
+                                            <div className="text-xs text-gray-500">
+                                                Color: {item.color || 'N/A'}
+                                            </div>
                                         </li>
                                     ))}
                                 </ul>
                             </td>
-                            <td className="py-2 px-4 border-b">${order.total}</td>
-                            <td className="py-2 px-4 border-b">
+                            <td className="border border-gray-300 px-4 py-2">
+                                ${order.totalPrice || 0}
+                            </td>
+                            <td className="border border-gray-300 px-4 py-2">
                                 <button className="text-blue-500 hover:underline">View</button>
                             </td>
                         </tr>

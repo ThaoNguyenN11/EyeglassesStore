@@ -12,6 +12,8 @@ import Customer from './pages/Customer'
 import Promote from './pages/Promote'
 import Warehouse from './pages/Warehouse'
 
+export const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 const App = () => {
 
   const[token, setToken] = useState ('212');

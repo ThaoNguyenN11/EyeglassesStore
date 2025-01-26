@@ -8,6 +8,8 @@ import userRouter from './routes/userRoute.js';
 import adminPromotion from './routes/promotionRoute.js';
 import productRouter from './routes/productRoute.js';
 import promotionRouter from './routes/promotionRoute.js';
+import cartRoute from './routes/cartRoute.js';
+import orderRoute from './routes/orderRoute.js';
 
 //app config
 const app = express()
@@ -23,6 +25,8 @@ app.use(cors())
 app.use('/api/user', userRouter)
 app.use('/api/product', productRouter)
 app.use('/api/promotion', promotionRouter);
+app.use('/api/cart', cartRoute);
+app.use('/api/order', orderRoute);
 // app.use('/api/user_promotion', userPromotion);
 
 app.get('/',(req, res) => {

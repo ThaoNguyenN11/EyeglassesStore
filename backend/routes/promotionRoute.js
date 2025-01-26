@@ -4,7 +4,7 @@ import {
     listPromotions,
     singlePromotion,
     editPromotion,
-    removePromotion,
+    removePromotion, 
 } from '../controllers/promotionController.js';
 
 const promotionRouter = express.Router();
@@ -16,12 +16,12 @@ promotionRouter.post('/add', addPromotion);
 promotionRouter.get('/list', listPromotions);
 
 // Lấy thông tin khuyến mãi theo promotionID
-promotionRouter.get('/single/:promotionId', singlePromotion);
+promotionRouter.get('/single/:promotionID', singlePromotion);
 
 // Sửa thông tin khuyến mãi theo promotionID
-promotionRouter.put('/edit/:promotionId', editPromotion);
+promotionRouter.patch('/edit/:promotionID', editPromotion);
 
 // Xóa khuyến mãi theo promotionID
-promotionRouter.delete('/remove/:promotionId', removePromotion);
+promotionRouter.patch('/remove/:promotionID', removePromotion);
 
 export default promotionRouter;

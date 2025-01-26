@@ -9,7 +9,7 @@ const Sidebar = () => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="h-screen w-48 bg-gray-200 text-black flex flex-col shadow-lg">
+    <div className="h-screen w-48 bg-gray-200 text-black flex flex-col shadow-lg sticky top-0">
       {/* <div className="flex items-center justify-center h-16 bg-gray-300">
         <h1 className="text-2xl font-bold">Admin Panel</h1>
       </div> */}

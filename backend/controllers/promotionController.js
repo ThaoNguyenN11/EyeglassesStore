@@ -1,9 +1,28 @@
 import promotionModel from '../models/promotionModel.js';
+import productModel from "../models/productModel.js";
+import { applyPromotionToActiveProducts } from "../services/promotionService.js";
+
+const updateDiscountedPrices = async (req, res) => {
+  try {
+    await applyPromotionToActiveProducts();
+    res.status(200).json({
+      success: true,
+      message: "Discounted prices updated successfully for active products.",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update discounted prices.",
+      error: error.message,
+    });
+  }
+};
+
 
 // Tạo mới promotion
 const addPromotion = async (req, res) => {
     try {
-        const { promotionID, name, startDate, endDate, discountPercentage, description } = req.body;
+        const { promotionID, name, startDate, endDate, discountPercentage, description, isActive } = req.body;
 
         // Kiểm tra nếu `promotionID` đã tồn tại
         const existingPromotion = await promotionModel.findOne({ promotionID });
@@ -22,6 +41,7 @@ const addPromotion = async (req, res) => {
             endDate,
             discountPercentage,
             description,
+            isActive,
         });
 
         const savedPromotion = await newPromotion.save();
@@ -42,7 +62,7 @@ const addPromotion = async (req, res) => {
 // Xem danh sách tất cả promotion
 const listPromotions = async (req, res) => {
     try {
-        const promotions = await promotionModel.find();
+        const promotions = await promotionModel.find({ isActive: true });
         res.status(200).json({
             success: true,
             data: promotions,
@@ -56,12 +76,15 @@ const listPromotions = async (req, res) => {
     }
 };
 
-// Xem thông tin chi tiết promotion theo promotionID
+//xem tung chuong trinh
 const singlePromotion = async (req, res) => {
     try {
-        const { promotionID } = req.params;
+        const { promotionID } = req.params; // Get promotionID from URL params
 
+        // Find the promotion in the database
         const promotion = await promotionModel.findOne({ promotionID });
+
+        // If no promotion found, return 404
         if (!promotion) {
             return res.status(404).json({
                 success: false,
@@ -69,11 +92,13 @@ const singlePromotion = async (req, res) => {
             });
         }
 
+        // Return the promotion data if found
         res.status(200).json({
             success: true,
             data: promotion,
         });
     } catch (error) {
+        // Handle any errors
         res.status(500).json({
             success: false,
             message: 'Error fetching promotion.',
@@ -85,15 +110,17 @@ const singlePromotion = async (req, res) => {
 // Sửa thông tin promotion theo promotionID
 const editPromotion = async (req, res) => {
     try {
-        const { promotionId } = req.params;
-        const updates = req.body;
+        const { promotionID } = req.params;  // Get promotionId from URL params
+        const updates = req.body;  // Get updated data from request body
 
+        // Find the promotion and update it
         const updatedPromotion = await promotionModel.findOneAndUpdate(
-            { promotionID },
+            { promotionID: promotionID },  // Match the promotionID field in the database
             updates,
-            { new: true } // Trả về document đã được cập nhật
+            { new: true, runValidators: true } // new: return the updated doc, runValidators: validate schema
         );
 
+        // If promotion not found
         if (!updatedPromotion) {
             return res.status(404).json({
                 success: false,
@@ -101,12 +128,14 @@ const editPromotion = async (req, res) => {
             });
         }
 
+        // Return success response with the updated data
         res.status(200).json({
             success: true,
             message: 'Promotion updated successfully!',
             data: updatedPromotion,
         });
     } catch (error) {
+        // Handle error
         res.status(500).json({
             success: false,
             message: 'Error updating promotion.',
@@ -120,26 +149,34 @@ const removePromotion = async (req, res) => {
     try {
         const { promotionID } = req.params;
 
-        const deletedPromotion = await promotionModel.findOneAndDelete({ promotionID });
-        if (!deletedPromotion) {
+        // Find the promotion by promotionID and update isActive to false
+        const updatedPromotion = await promotionModel.findOneAndUpdate(
+            { promotionID },
+            { isActive: false, updatedAt: Date.now() }, // Set isActive to false and update timestamp
+            { new: true } // Return the updated document
+        );
+
+        // If no promotion is found, return 404
+        if (!updatedPromotion) {
             return res.status(404).json({
                 success: false,
                 message: 'Promotion not found!',
             });
         }
 
+        // Return success with the updated promotion
         res.status(200).json({
             success: true,
-            message: 'Promotion removed successfully!',
-            data: deletedPromotion,
+            message: 'Promotion hidden successfully!',
+            data: updatedPromotion,
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error removing promotion.',
+            message: 'Error hiding promotion.',
             error: error.message,
         });
     }
 };
-
-export { addPromotion, listPromotions, singlePromotion, editPromotion, removePromotion };
+  
+export { addPromotion, listPromotions, singlePromotion, editPromotion, removePromotion, updateDiscountedPrices};

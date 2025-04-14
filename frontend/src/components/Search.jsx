@@ -1,19 +1,34 @@
-import React from 'react'
-import { useContext } from 'react'
-import { ShopContext } from '../context/ShopContext'
-import { assets } from '../assets/assets';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 
 const Search = () => {
-    const {search, setSearch, showSearch, setShowSerach} = useContext(ShopContext);
-  return  (
-    <div className='border-t border-b bg-gray-50 text-center'>
-        <div className='inline-flex items-center justify-center border border-gray-400 px-5 py-2 my-5 mx-3 rounded-full w-3/4 sm:w-1/2'>   
-            <input value={search} onChange={(e)=>setSearch(e.target.value)} className='flex-1 outline-none bg-inherit text-sm' type="text" placeholder='search' />
-            <img className='inline w-3 cursor-pointer'src={assets.search_icon}  alt="" />
-        </div>
-      
-    </div>
-  )
-}
+  const [query, setQuery] = useState("");
+  const navigate = useNavigate();
 
-export default Search
+  const handleSearch = () => {
+    if (query.trim()) {
+      navigate(`/search?query=${query}`);
+    }
+  };
+
+  return (
+    <div className="border-t border-b bg-gray-50 text-center p-4">
+      <div className="relative inline-flex items-center border border-gray-400 px-5 py-2 rounded-full w-3/4 sm:w-1/2">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="flex-1 outline-none bg-inherit text-sm"
+          type="text"
+          placeholder="Enter search keyword"
+        />
+        <button onClick={handleSearch} className="ml-2 px-3 py-1  rounded">
+        <FontAwesomeIcon icon={faMagnifyingGlass} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default Search;

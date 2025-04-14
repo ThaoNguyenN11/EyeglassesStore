@@ -6,9 +6,9 @@ const orderSchema = new mongoose.Schema(
         userID: { type: String, ref: 'user', required: true }, // Liên kết tới User
         items: [
             {
-                productID: { type: String, ref: 'product', required: true }, // Liên kết tới sản phẩm
+                productID: { type: String, ref: 'Product', required: true }, // Liên kết tới sản phẩm
                 quantity: { type: Number, required: true, min: 1 }, // Số lượng sản phẩm
-                price: { type: Number, required: true }, // Giá sản phẩm
+                price: { type: Number}, // Giá sản phẩm
                 color: { type: String, required: true }, // Màu kính
             },
         ],

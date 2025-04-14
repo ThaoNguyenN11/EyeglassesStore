@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard'
 import Customer from './pages/Customer'
 import Promote from './pages/Promote'
 import Warehouse from './pages/Warehouse'
+import EditProduct from './pages/Edit'
 
 export const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -30,6 +31,7 @@ const App = () => {
           <div className='w-[70%] mx-auto ml-max[(5vw, 25px)] my-8 text-gray-600 text-base'>
           <Routes>
             <Route path='/product' element={< Products/>} />
+            <Route path="/edit/:productID" element={<EditProduct />} />
             <Route path='/add' element={< Add/>} />
             <Route path='/customer' element={<Customer/>} />
             <Route path='/orders' element={<Orders/>} />

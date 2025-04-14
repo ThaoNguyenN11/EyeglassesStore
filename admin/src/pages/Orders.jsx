@@ -15,7 +15,7 @@ const Orders = () => {
     const fetchOrders = async () => {
         try {
             const response = await axios.get('http://localhost:4000/api/order/admin/get');
-            console.log('API Response:', response.data); // Để debug
+            console.log('API Response:', response.data); 
             setOrders(response.data.data);
             setLoading(false);
         } catch (err) {
@@ -27,7 +27,8 @@ const Orders = () => {
 
     const handleStatusChange = async (id, newStatus) => {
         try {
-            await axios.put(`http://localhost:4000/api/order/admin/update/${id}`, {
+            await axios.put(`http://localhost:4000/api/order/admin/update`, {
+                orderID: id,
                 status: newStatus
             });
             
@@ -40,6 +41,22 @@ const Orders = () => {
         } catch (err) {
             console.error('Error updating order status:', err);
             alert('Failed to update order status');
+        }
+    };
+
+    const handleCancelOrder = async (id) => {
+        try {
+            await axios.put(`http://localhost:4000/api/order/admin/cancel`, { orderID: id });
+            setOrders(orders.map((order) => {
+                if (order._id === id) {
+                    return { ...order, status: 'Cancelled' };
+                }
+                return order;
+            }));
+            alert('Order has been cancelled successfully');
+        } catch (err) {
+            console.error('Error cancelling order:', err);
+            alert('Failed to cancel order');
         }
     };
 
@@ -61,7 +78,9 @@ const Orders = () => {
 
     return (
         <div className="container mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-4">Orders</h1>
+            <h1 className="text-2xl font-bold mb-4">Order Management</h1>
+            <div className="bg-white p-4 rounded-lg shadow-md">
+            <h2 className="text-xl font-medium mb-4"> Order List</h2>
             <table className="min-w-full bg-white border border-gray-300">
                 <thead>
                     <tr className="bg-gray-200">
@@ -132,12 +151,26 @@ const Orders = () => {
                                 ${order.totalPrice || 0}
                             </td>
                             <td className="border border-gray-300 px-4 py-2">
-                                <button className="text-blue-500 hover:underline">View</button>
+                                <button
+                                    className="text-blue-500 hover:underline mr-2"
+                                    onClick={() => alert(`Viewing details for Order ID: ${order.orderID}`)}
+                                >
+                                    View
+                                </button>
+                                {order.status !== 'Cancelled' && (
+                                    <button
+                                        className="text-red-500 hover:underline"
+                                        onClick={() => handleCancelOrder(order._id)}
+                                    >
+                                        Cancel
+                                    </button>
+                                )}
                             </td>
                         </tr>
                     ))}
                 </tbody>
             </table>
+            </div>
         </div>
     );
 };

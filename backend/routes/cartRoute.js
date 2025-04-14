@@ -1,17 +1,12 @@
 import express from "express";
 import { addToCart, getCart, removeFromCart, updateQuantityInCart } from "../controllers/cartController.js";
+import { getAllUserOrders } from "../controllers/orderController.js";
 
-const cartRoute = express.Router();
+const cartRouter = express.Router();
 
-// Route để thêm sản phẩm vào giỏ hàng
-cartRoute.post("/add", addToCart);
+cartRouter.post("/add", addToCart);
+cartRouter.get("/:userID", getCart);
+cartRouter.patch("/update", updateQuantityInCart);
+cartRouter.delete("/remove", removeFromCart);
 
-// Route để lấy thông tin giỏ hàng của người dùng
-cartRoute.get("/:userID", getCart);
-
-//update soos luong san pham trong gio hang
-cartRoute.patch("/update", updateQuantityInCart);
-
-//update soos luong san pham trong gio hang
-cartRoute.delete("/remove", removeFromCart);
-export default cartRoute;
+export default cartRouter;

@@ -14,6 +14,7 @@ export async function applyPromotionToActiveProducts() {
 
     if (!activePromotion) {
       console.warn("Không có chương trình khuyến mãi nào đang hoạt động.");
+      
       return;
     }
 

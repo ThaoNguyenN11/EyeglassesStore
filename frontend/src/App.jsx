@@ -16,11 +16,12 @@ import Footer from './components/Footer'
 import Search from './components/Search'
 import MyProfile from './pages/MyProfile'
 import MyOrders from './pages/MyOrders'
+import Signup from './pages/Signup'
+import SearchResults from './pages/SearchResult'
 
 const App = () => {
   return (
-    <div className='px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]'>
-      <p>Hello</p>
+      <div className='px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]'>
       <Navbar/>
       <Search/>
       <Routes>
@@ -33,10 +34,12 @@ const App = () => {
         <Route path='/product/:productID' element={<Product/>} />
         <Route path='/cart' element={<Cart/>} />
         <Route path='/login' element={<Login/>} />
+        <Route path='/signup' element={<Signup/>}/>
         <Route path='/placeorder' element={<PlaceOrder/>} />
         <Route path='/order' element={<Order/>} />
         <Route path='/myprofile' element={<MyProfile/>} />
         <Route path='/myorders' element={<MyOrders/>} />
+        <Route path='/search' element={<SearchResults/>}/>
       </Routes>
       <Footer/>
     </div>

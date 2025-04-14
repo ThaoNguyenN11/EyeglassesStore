@@ -1,4 +1,5 @@
 import productModel from "../models/productModel.js";
+import cloudinary from "cloudinary";
 
 const addProduct = async (req, res) => {
   try {
@@ -6,141 +7,102 @@ const addProduct = async (req, res) => {
       productID,
       productName,
       category,
-      subCategory,
-      color,
       material,
       price,
       description,
       bestSeller,
       discountedPrice = 0,
-      isActive = true, // Nếu không có giá trị isActive trong req.body, mặc định là true
+      isActive = true,
+      variations,
+      dimensions,
     } = req.body;
+
+    if (!req.files || Object.keys(req.files).length === 0) {
+      return res.status(400).json({ success: false, message: "Please upload at least one image!" });
+    }
+
+    // Chuyển đổi variations từ string sang object nếu cần
+    let parsedVariations = typeof variations === "string" ? JSON.parse(variations) : variations;
+
+    // Gán ảnh theo từng màu
+    const processedVariations = parsedVariations.map((variation) => {
+      const color = variation.color;
+      const colorKey = `files_${color}`; // Ví dụ: files_Red, files_Blue
+
+      return {
+        ...variation,
+        imageUrls: req.files[colorKey] ? req.files[colorKey].map(file => file.path) : []
+      };
+    });
 
     // Tạo sản phẩm mới
     const newProduct = new productModel({
       productID,
       productName,
       category,
-      subCategory,
-      color,
       material,
       price,
+      discountedPrice,
       description,
       bestSeller,
-      discountedPrice,
-      isActive, // Chuyển giá trị isActive vào đây
+      isActive,
+      variations: processedVariations,
+      dimensions,
     });
 
-    // Lưu sản phẩm vào cơ sở dữ liệu
     await newProduct.save();
+
     res.status(201).json({
       success: true,
-      message: "Product added successfully!",
+      message: "Added successfully!",
       data: newProduct,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error adding product",
+      message: "An error occurred while adding the product.",
       error: error.message,
     });
   }
 };
 
-// Xóa mềm các sản phẩm bằng cách thay đổi trạng thái
-const removeProduct = async (req, res) => {
-  try {
-    const productID = req.params.productID; // Lấy productId từ URL
-    const product = await productModel.findOneAndUpdate(
-      { productID },
-      { isActive: false, updatedAt: Date.now() }, // Đánh dấu sản phẩm là không hoạt động
-      { new: true } // Trả về sản phẩm sau khi cập nhật
-    );
-
-    if (!product) {
-      // Kiểm tra xem sản phẩm có được tìm thấy hay không
-      return res.status(404).json({
-        success: false,
-        message: "Product not found!",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Product hidden successfully!",
-      data: product,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "An error occurred while hiding the product.",
-    });
-  }
-};
-
-// List all products
-const listProducts = async (req, res) => {
-  try {
-    const currentDate = new Date();
-    // Lấy tất cả các sản phẩm
-    const products = await productModel.find(); //chỉ hiển thị nhưngx sản phẩm còn hoạt động
-
-    res.status(200).json({ success: true, data: products });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error listing products",
-      error: error.message,
-    });
-  }
-};
-
-// Get single product information by ID
-const singleProduct = async (req, res) => {
-  try {
-    const productID = req.params.productID; // Lấy productID từ URL
-    const product = await productModel.findOne({ productID }); // Tìm sản phẩm theo productID
-
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found!",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      data: product,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "An error occurred while fetching the product.",
-    });
-  }
-};
-
-// Chỉnh sửa thông tin sản phẩm
 const editProduct = async (req, res) => {
   try {
-    const { productID } = req.params; // Lấy productId từ URL (không cần lấy từ req.params.productId)
-    const updates = req.body; // Lấy thông tin cập nhật từ body
+    const { productID } = req.params;
+    let updates = req.body;
 
-    // Tìm và cập nhật sản phẩm theo productId
-    const updatedProduct = await productModel.findOneAndUpdate(
-      { productID }, // Tìm sản phẩm theo productId
-      updates, // Cập nhật thông tin
-      { new: true, runValidators: true } // `new` để trả về document sau khi cập nhật, `runValidators` để kiểm tra validation
-    );
+    // Kiểm tra sản phẩm có tồn tại hay không
+    const existingProduct = await productModel.findOne({ productID });
+    if (!existingProduct) {
+      return res.status(404).json({ success: false, message: "Product not found!" });
+    }
 
-    if (!updatedProduct) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found!",
+    // Kiểm tra và parse variations từ JSON string nếu cần
+    let updatedVariations = typeof updates.variations === "string" ? JSON.parse(updates.variations) : updates.variations;
+
+    // Nếu có ảnh mới, ghi đè ảnh theo từng màu
+    if (req.files && Object.keys(req.files).length > 0) {
+      updatedVariations = updatedVariations.map((variation) => {
+        const colorKey = `files_${variation.color}`;
+
+        return {
+          ...variation,
+          imageUrls: req.files[colorKey] ? req.files[colorKey].map(file => file.path) : variation.imageUrls // Ghi đè ảnh
+        };
       });
     }
+
+    // Cập nhật dữ liệu sản phẩm
+    const updatedProduct = await productModel.findOneAndUpdate(
+      { productID },
+      {
+        $set: {
+          ...updates,
+          variations: updatedVariations
+        },
+      },
+      { new: true, runValidators: true }
+    );
 
     res.status(200).json({
       success: true,
@@ -148,87 +110,139 @@ const editProduct = async (req, res) => {
       data: updatedProduct,
     });
   } catch (error) {
-    console.error(error);
+    console.error("❌ Error updating product:", error);
     res.status(500).json({
       success: false,
       message: "An error occurred while updating the product.",
+      error: error.message,
     });
   }
 };
 
-//lay tat ca san pham dang co trang thai la ban
-const getActiveProducts =  async (req, res) => {
+const listProducts = async (req, res) => {
   try {
-    const products = await productModel.find({ isActive: true }); // Lọc chỉ sản phẩm hoạt động
+    const products = await productModel.find();
+    res.status(200).json({ success: true, data: products });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error listing products", error: error.message });
+  }
+};
+
+const singleProduct = async (req, res) => {
+  try {
+    const { productID } = req.params;
+    const product = await productModel.findOne({ productID });
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found!" });
+    }
+
     res.status(200).json({
       success: true,
-      data: products,
+      data: product,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "An error occurred while fetching products.",
-    });
+    res.status(500).json({ success: false, message: "An error occurred while fetching the product." });
   }
 };
 
-// Get all unactive products
+const removeProduct = async (req, res) => {
+  try {
+    const productID = req.params.productID;
+    const product = await productModel.findOneAndUpdate(
+      { productID },
+      { isActive: false, updatedAt: Date.now() },
+      { new: true }
+    );
+
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found!" });
+    }
+
+    res.status(200).json({ success: true, message: "Product hidden successfully!", data: product });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "An error occurred while hiding the product." });
+  }
+};
+
+const getActiveProducts = async (req, res) => {
+  try {
+    const products = await productModel.find({ isActive: true });
+    res.status(200).json({ success: true, data: products });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "An error occurred while fetching products." });
+  }
+};
+
 const getInactiveProducts = async (req, res) => {
   try {
-    const products = await productModel.find({ isActive: false }); // Lọc chỉ sản phẩm hoạt động
-    res.status(200).json({
-      success: true,
-      data: products,
-    });
+    const products = await productModel.find({ isActive: false });
+    res.status(200).json({ success: true, data: products });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      message: "An error occurred while fetching products.",
-    });
+    res.status(500).json({ success: false, message: "An error occurred while fetching products." });
   }
 };
 
 const updateProductDiscount = async (req, res) => {
   try {
     const { productID } = req.params;
+    const { discountedPrice } = req.body;
 
-    // Lấy thông tin sản phẩm
-    const product = await productModel.findOne({ productID });
-    if (!product) return res.status(404).json({ message: "Product not found" });
+    if (discountedPrice < 0) {
+      return res.status(400).json({ success: false, message: "Giá giảm không hợp lệ!" });
+    }
 
-    // Lấy tất cả các chương trình khuyến mãi còn hiệu lực
-    const currentDate = new Date();
-    const promotions = await promotionModel.find({
-      startDate: { $lte: currentDate },
-      endDate: { $gte: currentDate },
-      isActive: true,
+    const updatedProduct = await productModel.findOneAndUpdate(
+      { productID },
+      { discountedPrice },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy sản phẩm!" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Cập nhật giảm giá thành công!",
+      data: updatedProduct,
     });
-
-    // Lấy chi tiết chương trình khuyến mãi cho sản phẩm
-    const promotionDetails = await promotionDetailModel.find({
-      productID: product._id,
-      promotionID: { $in: promotions.map((promo) => promo._id) },
-    });
-
-    // Tính toán giá giảm cho sản phẩm
-    await product.calculateDiscountedPrice(promotionDetails);
-
-    res.status(200).json({ message: "Product price updated", product });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ success: false, message: "Lỗi khi cập nhật giảm giá sản phẩm.", error: error.message });
+  }
+};
+
+const searchProducts = async (req, res) => {
+  try {
+    const { query } = req.query; // Lấy từ khóa tìm kiếm từ URL
+
+    if (!query) {
+      return res.status(400).json({ success: false, message: "Missing search query!" });
+    }
+
+    const products = await productModel.find({
+      $or: [
+        { productName: { $regex: query, $options: "i" } }, // Tìm trong tên sản phẩm (không phân biệt hoa thường)
+        { category: { $regex: query, $options: "i" } }, // Tìm trong danh mục
+        { material: { $regex: query, $options: "i" } }, // Tìm trong chất liệu
+        { description: { $regex: query, $options: "i" } }, // Tìm trong mô tả
+      ],
+    });
+
+    res.status(200).json({ success: true, data: products });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error searching products!" });
   }
 };
 
 export {
   addProduct,
-  removeProduct,
+  editProduct,
   listProducts,
   singleProduct,
-  editProduct,
+  removeProduct,
   getActiveProducts,
   getInactiveProducts,
   updateProductDiscount,
+  searchProducts,
 };

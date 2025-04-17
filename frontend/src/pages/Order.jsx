@@ -1,10 +1,12 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 const Order = () => {
   const location = useLocation();
   const order = location.state?.order; // Access the order data passed via state
-
+  const navigate = useNavigate();
+  const [countdown, setCountdown] = useState(10);
   if (!order) {
     return <p>No order data available.</p>;
   }
@@ -16,7 +18,22 @@ const Order = () => {
     (sum, item) => sum + item.price * item.quantity,
     0
   );
+  useEffect(() => {
+    // Set up countdown timer
+    const timer = setInterval(() => {
+      setCountdown((prevCount) => prevCount - 1);
+    }, 1000);
 
+    // Set up redirect after 10 seconds
+    const redirect = setTimeout(() => {
+      navigate("/"); // Redirect to home page
+    }, 10000);
+
+    return () => {
+        clearInterval(timer);
+        clearTimeout(redirect);
+      };
+    }, [navigate]);
   return (
     <div className="max-w-2xl mx-auto p-4">
       {/* Header with Order ID and Status */}

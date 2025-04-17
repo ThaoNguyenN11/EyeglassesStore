@@ -18,6 +18,7 @@ import MyProfile from './pages/MyProfile'
 import MyOrders from './pages/MyOrders'
 import Signup from './pages/Signup'
 import SearchResults from './pages/SearchResult'
+import PaymentResult from './pages/PaymentResult'
 
 const App = () => {
   return (
@@ -40,6 +41,7 @@ const App = () => {
         <Route path='/myprofile' element={<MyProfile/>} />
         <Route path='/myorders' element={<MyOrders/>} />
         <Route path='/search' element={<SearchResults/>}/>
+        <Route path='/payment-result' element={<PaymentResult/>}/>
       </Routes>
       <Footer/>
     </div>

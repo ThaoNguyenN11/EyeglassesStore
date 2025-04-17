@@ -86,12 +86,19 @@ const getUserOrders = async (req, res) => {
 
     // Tìm các đơn hàng của người dùng
     const orders = await Order.find({ userID })
-      .populate("items.productID", "productName price")
+      .populate({
+        path: "items.productID",
+        model: "Product",
+        select: "productName",
+        localField: "items.productID",
+        foreignField: "productID",
+        justOne: true, // vì mỗi item chỉ liên kết 1 sản phẩm
+      })      
       .exec();
 
     const orderDetails = orders.map((order) => {
       const totalOrderPrice = order.items.reduce(
-        (total, item) => total + item.quantity * item.price,
+        (total, item) => total + item.quantity * item.price + 10,
         0
       );
 
@@ -103,7 +110,7 @@ const getUserOrders = async (req, res) => {
           quantity: item.quantity,
           color: item.color,
           price: item.price,
-          totalPrice: item.quantity * item.price,
+          totalPrice: item.quantity * item.price + 10,
         })),
         totalPrice: totalOrderPrice,
         shippingAddress: order.shippingAddress,
@@ -131,16 +138,18 @@ const getAllOrders = async (req, res) => {
 
     // Truy vấn tất cả các đơn hàng của người dùng theo userID (kiểu String)
     const orders = await Order.find()
-      .populate("items.productID", "productName price") // Populate thông tin sản phẩm
+      .populate({
+        path: "items.productID",
+        model: "Product",
+        select: "productName",
+        localField: "items.productID",
+        foreignField: "productID",
+        justOne: true, // vì mỗi item chỉ liên kết 1 sản phẩm
+      }) // Populate thông tin sản phẩm
       .exec();
 
     // Duyệt qua các đơn hàng và tính tổng giá tiền cho mỗi đơn
     const orderDetails = orders.map((order) => {
-      const totalOrderPrice = order.items.reduce(
-        (total, item) => total + item.quantity * item.price,
-        0
-      );
-
       return {
         orderID: order.orderID,
         userName: order.userID, // Lấy userName trực tiếp từ userID
@@ -149,9 +158,8 @@ const getAllOrders = async (req, res) => {
           quantity: item.quantity,
           color: item.color,
           price: item.price,
-          totalPrice: item.quantity * item.price,
         })),
-        totalPrice: totalOrderPrice,
+        totalPrice:  order.totalPrice,
         shippingAddress: order.shippingAddress,
         status: order.status,
       };
@@ -325,7 +333,14 @@ const getAllUserOrders = async (req, res) => {
 
     const orders = await Order.find(query)
       .populate("userID", "name email")
-      .populate("items.productID", "productName price")
+      .populate({
+        path: "items.productID",
+        model: "Product",
+        select: "productName",
+        localField: "items.productID",
+        foreignField: "productID",
+        justOne: true, // vì mỗi item chỉ liên kết 1 sản phẩm
+      })
       .exec();
 
     const orderDetails = orders.map((order) => ({

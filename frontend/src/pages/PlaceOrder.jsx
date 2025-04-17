@@ -99,6 +99,14 @@ const PlaceOrder = () => {
             body: JSON.stringify({
               orderInfo: orderData,
               amount: total * 1000, // Momo yêu cầu số tiền tính bằng đồng
+              userId: user.userID,
+              shippingAddress: {
+                fullName: `${formData.firstName} ${formData.lastName}`,
+                address: `${formData.street}, ${formData.district}`, 
+                city: formData.city, 
+                phone: formData.phoneNumber
+              },
+              
             })
           });
   

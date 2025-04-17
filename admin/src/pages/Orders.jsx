@@ -27,13 +27,13 @@ const Orders = () => {
 
     const handleStatusChange = async (id, newStatus) => {
         try {
-            await axios.put(`http://localhost:4000/api/order/admin/update`, {
+            await axios.patch(`http://localhost:4000/api/order/admin/update`, {
                 orderID: id,
                 status: newStatus
             });
             
             setOrders(orders.map((order) => {
-                if (order._id === id) {
+                if (order.orderID === id) {
                     return { ...order, status: newStatus };
                 }
                 return order;
@@ -46,9 +46,9 @@ const Orders = () => {
 
     const handleCancelOrder = async (id) => {
         try {
-            await axios.put(`http://localhost:4000/api/order/admin/cancel`, { orderID: id });
+            await axios.patch(`http://localhost:4000/api/order/admin/cancel`, { orderID: id });
             setOrders(orders.map((order) => {
-                if (order._id === id) {
+                if (order.orderID === id) {
                     return { ...order, status: 'Cancelled' };
                 }
                 return order;
@@ -119,7 +119,7 @@ const Orders = () => {
                             <td className="border border-gray-300 px-4 py-2">
                                 <select
                                     value={order.status}
-                                    onChange={(e) => handleStatusChange(order._id, e.target.value)}
+                                    onChange={(e) => handleStatusChange(order.orderID, e.target.value)}
                                     className="border border-gray-300 rounded-md p-1"
                                 >
                                     {statusOptions.map((status) => (
@@ -135,7 +135,7 @@ const Orders = () => {
                                         <li key={index} className="mb-1">
                                             <span className="font-medium">
                                                 {/* Kiểm tra nếu productID tồn tại */}
-                                                {item.productID?.name || 'Unnamed Product'}
+                                                {item.product && item.product.productName ? item.product.productName : 'Unnamed Product'}
                                             </span>
                                             <span className="text-gray-500">
                                                 {' x'}{item.quantity}
@@ -160,7 +160,7 @@ const Orders = () => {
                                 {order.status !== 'Cancelled' && (
                                     <button
                                         className="text-red-500 hover:underline"
-                                        onClick={() => handleCancelOrder(order._id)}
+                                        onClick={() => handleCancelOrder(order.orderID)}
                                     >
                                         Cancel
                                     </button>

@@ -5,7 +5,6 @@ const addWarehouseEntry = async (req, res) => {
   try {
     const { importID, productID, color, importDate, quantity, importPrice } = req.body;
 
-    // 🔹 Tìm sản phẩm bằng productID thay vì ObjectId
     const product = await productModel.findOne({ productID });
 
     if (!product) {
@@ -15,7 +14,6 @@ const addWarehouseEntry = async (req, res) => {
       });
     }
 
-    // 🔹 Kiểm tra sản phẩm có biến thể màu sắc không
     const variation = product.variations.find((v) => v.color === color);
     if (!variation) {
       return res.status(400).json({
@@ -24,7 +22,6 @@ const addWarehouseEntry = async (req, res) => {
       });
     }
 
-    // 🔹 Kiểm tra nếu importID đã tồn tại
     const existingEntry = await warehouseModel.findOne({ importID });
     if (existingEntry) {
       return res.status(400).json({
@@ -33,21 +30,18 @@ const addWarehouseEntry = async (req, res) => {
       });
     }
 
-    // 🔹 Tạo bản ghi nhập kho mới
     const newEntry = new warehouseModel({
       importID,
-      productID, // Vẫn dùng productID, không đổi sang ObjectId
+      productID, 
       color,
       importDate: importDate || Date.now(),
       quantity,
       importPrice,
     });
 
-    // 🔹 Cập nhật số lượng tồn kho cho sản phẩm
     variation.quantity += quantity;
     await product.save();
     
-    // 🔹 Lưu vào database
     await newEntry.save();
 
     res.status(201).json({
@@ -64,7 +58,6 @@ const addWarehouseEntry = async (req, res) => {
   }
 };
 
-// Lấy danh sách các lần nhập kho
 const getAllWarehouseEntries = async (req, res) => {
   try {
     const warehouseEntries = await warehouseModel.find();

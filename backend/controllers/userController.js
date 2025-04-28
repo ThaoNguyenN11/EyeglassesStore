@@ -128,29 +128,24 @@ const updateUser = async (req, res) => {
       const userId = req.user.id;
       const { name, phone, address, gender, faceShape } = req.body;
   
-      // Tìm user trong database
       const user = await userModel.findById(userId);
       if (!user) return res.status(404).json({ message: "User not found" });
   
-      // Nếu có avatar mới, xử lý upload lên Cloudinary
-      let newAvatarUrl = user.avatar; // Giữ avatar cũ nếu không cập nhật
+      let newAvatarUrl = user.avatar; 
   
       if (req.file) {
-        // Xóa avatar cũ trên Cloudinary (nếu có)
         if (user.avatar && user.avatar.includes("res.cloudinary.com")) {
           const oldPublicId = user.avatar.split("/").slice(-2).join("/").split(".")[0];
           await cloudinary.uploader.destroy(oldPublicId);
         }
   
-        // Upload ảnh mới lên Cloudinary
         const result = await cloudinary.uploader.upload(req.file.path, {
           folder: "avatars", 
         });
   
-        newAvatarUrl = result.secure_url; // Lấy URL ảnh từ Cloudinary
+        newAvatarUrl = result.secure_url;
       }
   
-      // Cập nhật thông tin người dùng
       user.name = name || user.name;
       user.phone = phone || user.phone;
       user.address = address || user.address;
@@ -169,7 +164,7 @@ const updateUser = async (req, res) => {
           address: user.address,
           gender: user.gender,
           faceShape: user.faceShape,
-          avatar: user.avatar, // Đảm bảo avatar có trong response
+          avatar: user.avatar, 
         },
       });
     } catch (error) {

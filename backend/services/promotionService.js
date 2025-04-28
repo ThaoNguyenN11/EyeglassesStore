@@ -5,7 +5,6 @@ export async function applyPromotionToActiveProducts() {
   try {
     const currentDate = new Date();
 
-    // Lấy chương trình khuyến mãi đang hoạt động
     const activePromotion = await promotionModel.findOne({
       isActive: true,
       startDate: { $lte: currentDate },
@@ -13,8 +12,11 @@ export async function applyPromotionToActiveProducts() {
     });
 
     if (!activePromotion) {
+      await productModel.updateMany(
+        { isActive: true },
+        { $set: { discountedPrice: 0 } }
+      );
       console.warn("Không có chương trình khuyến mãi nào đang hoạt động.");
-      
       return;
     }
 

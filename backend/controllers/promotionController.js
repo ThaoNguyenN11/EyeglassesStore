@@ -79,12 +79,9 @@ const listPromotions = async (req, res) => {
 //xem tung chuong trinh
 const singlePromotion = async (req, res) => {
     try {
-        const { promotionID } = req.params; // Get promotionID from URL params
-
-        // Find the promotion in the database
+        const { promotionID } = req.params; 
         const promotion = await promotionModel.findOne({ promotionID });
 
-        // If no promotion found, return 404
         if (!promotion) {
             return res.status(404).json({
                 success: false,
@@ -92,13 +89,11 @@ const singlePromotion = async (req, res) => {
             });
         }
 
-        // Return the promotion data if found
         res.status(200).json({
             success: true,
             data: promotion,
         });
     } catch (error) {
-        // Handle any errors
         res.status(500).json({
             success: false,
             message: 'Error fetching promotion.',
@@ -110,17 +105,16 @@ const singlePromotion = async (req, res) => {
 // Sửa thông tin promotion theo promotionID
 const editPromotion = async (req, res) => {
     try {
-        const { promotionID } = req.params;  // Get promotionId from URL params
-        const updates = req.body;  // Get updated data from request body
+        const { promotionID } = req.params;  
+        const updates = req.body;  
 
         // Find the promotion and update it
         const updatedPromotion = await promotionModel.findOneAndUpdate(
-            { promotionID: promotionID },  // Match the promotionID field in the database
+            { promotionID: promotionID },  
             updates,
-            { new: true, runValidators: true } // new: return the updated doc, runValidators: validate schema
+            { new: true, runValidators: true }
         );
 
-        // If promotion not found
         if (!updatedPromotion) {
             return res.status(404).json({
                 success: false,
@@ -128,14 +122,12 @@ const editPromotion = async (req, res) => {
             });
         }
 
-        // Return success response with the updated data
         res.status(200).json({
             success: true,
             message: 'Promotion updated successfully!',
             data: updatedPromotion,
         });
     } catch (error) {
-        // Handle error
         res.status(500).json({
             success: false,
             message: 'Error updating promotion.',
@@ -149,14 +141,12 @@ const removePromotion = async (req, res) => {
     try {
         const { promotionID } = req.params;
 
-        // Find the promotion by promotionID and update isActive to false
         const updatedPromotion = await promotionModel.findOneAndUpdate(
             { promotionID },
-            { isActive: false, updatedAt: Date.now() }, // Set isActive to false and update timestamp
-            { new: true } // Return the updated document
+            { isActive: false, updatedAt: Date.now() }, 
+            { new: true } 
         );
 
-        // If no promotion is found, return 404
         if (!updatedPromotion) {
             return res.status(404).json({
                 success: false,
@@ -164,7 +154,6 @@ const removePromotion = async (req, res) => {
             });
         }
 
-        // Return success with the updated promotion
         res.status(200).json({
             success: true,
             message: 'Promotion hidden successfully!',

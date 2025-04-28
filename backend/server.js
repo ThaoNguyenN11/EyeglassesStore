@@ -17,6 +17,8 @@ import warehouseRouter from "./routes/warehouseRoute.js";
 import path from "path";
 import { fileURLToPath } from "url";
 import paymentRoute from './routes/paymentRoute.js';
+import adminRouter from "./routes/adminDahboardRoute.js";
+import "cronJob.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -47,7 +49,7 @@ app.use("/api/promotion", promotionRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
 app.use("/api/warehouse", warehouseRouter);
-
+app.use("/api/admin/dashboard", adminRouter);
 app.get("/", (req, res) => {
   res.send("API Working");
 });

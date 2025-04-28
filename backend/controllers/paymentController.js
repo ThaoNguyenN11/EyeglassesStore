@@ -16,7 +16,7 @@ const createMoMoPayment = async (req, res) => {
     var orderInfo = 'pay with MoMo';
     var partnerCode = 'MOMO';
     var redirectUrl = 'http://localhost:5173/payment-result';
-    var ipnUrl = 'https://7f36-2402-800-61c4-e8af-a8ce-bc7b-1420-72dc.ngrok-free.app/api/payment/momo/notify';
+    var ipnUrl = 'https://cc38-27-72-98-245.ngrok-free.app/api/payment/momo/notify';
     var requestType = "payWithMethod";
     var amount = req.body.amount?.toString() || '50000';;
     var orderId = partnerCode + new Date().getTime();
@@ -94,7 +94,7 @@ const notifyPayment = async (req, res) => {
         resultCode,
         message,
         amount,
-        extraData      // userID bạn truyền khi tạo thanh toán
+        extraData      
       } = req.body;
       const decodedData = JSON.parse(Buffer.from(extraData, 'base64').toString());
       const userID = decodedData.userId;
@@ -105,7 +105,6 @@ const notifyPayment = async (req, res) => {
         return res.status(200).send("Payment failed.");
       }    
       try {
-        // 🔁 Reuse logic xử lý đơn hàng
         const cart = await Cart.findOne({ userID }); 
     
         if (!cart || cart.items.length === 0) {
@@ -133,7 +132,7 @@ const notifyPayment = async (req, res) => {
         const totalPrice = updatedItems.reduce((acc, item) => acc + item.price * item.quantity, 0) + 10;
     
         const newOrder = new Order({
-          orderID: orderId, // dùng luôn orderId của MoMo
+          orderID: orderId, 
           userID,
           items: updatedItems,
           totalPrice,

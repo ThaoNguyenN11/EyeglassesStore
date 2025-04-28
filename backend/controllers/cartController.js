@@ -51,17 +51,17 @@ const getCart = async (req, res) => {
     const { userID } = req.params;
 
     const cart = await Cart.aggregate([
-      { $match: { userID } }, // Lọc giỏ hàng theo userID
-      { $unwind: "$items" }, // Tách mảng items thành từng phần tử riêng
+      { $match: { userID } }, 
+      { $unwind: "$items" },
       { 
         $lookup: {
-          from: "products", // Bảng Product trong MongoDB
+          from: "products", 
           localField: "items.productID",
           foreignField: "productID",
           as: "productDetails"
         }
       },
-      { $unwind: "$productDetails" }, // Bỏ mảng bọc ngoài kết quả của lookup
+      { $unwind: "$productDetails" }, 
 
       {
         $addFields: {
@@ -69,7 +69,7 @@ const getCart = async (req, res) => {
             $arrayElemAt: [
               {
                 $filter: {
-                  input: "$productDetails.variations", // Danh sách biến thể
+                  input: "$productDetails.variations", 
                   as: "variation",
                   cond: { 
                     $eq: [

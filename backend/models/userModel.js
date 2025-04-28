@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 
 const userSchema = new mongoose.Schema(
   {
-    userID: { type: String, unique: true }, // Mã người dùng
+    userID: { type: String, unique: true }, 
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     avatar: { type: String },
@@ -20,12 +20,10 @@ const userSchema = new mongoose.Schema(
 userSchema.pre("save", async function (next) {
   if (!this.userID) {
     try {
-      // Kiểm tra số lượng người dùng hiện có trong cơ sở dữ liệu
       const count = await mongoose.model("user").countDocuments();
-      // Tạo userID với định dạng USER0001, USER0002,...
       this.userID = `USER${(count + 1).toString().padStart(4, "0")}`;
     } catch (error) {
-      return next(error); // Nếu có lỗi trong quá trình tính toán, gọi next với lỗi
+      return next(error); 
     }
   }
   next();
